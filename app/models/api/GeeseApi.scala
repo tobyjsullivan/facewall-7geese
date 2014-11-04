@@ -72,13 +72,17 @@ object GeeseApi {
     val fResp = holder.get()
 
     fResp.map { response =>
-      val jsResp = Json.parse(response.body)
+      response.status match {
+        case 200 => {val jsResp = Json.parse(response.body)
 
-      val totalCount = (jsResp \ "meta" \ "total_count").as[Int]
+          val totalCount = (jsResp \ "meta" \ "total_count").as[Int]
 
-      val objects: Set[Employee] = (jsResp \ "objects").as[Set[Employee]]
+          val objects: Set[Employee] = (jsResp \ "objects").as[Set[Employee]]
 
-      PagedResults(objects, offset, limit, totalCount)
+          PagedResults(objects, offset, limit, totalCount)
+        }
+        case status => throw new Exception("Unexpected response from userprofile endpoint: "+status)
+      }
     }
   }
 }
