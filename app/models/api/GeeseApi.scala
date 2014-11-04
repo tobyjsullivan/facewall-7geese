@@ -15,7 +15,7 @@ object GeeseApi {
   val apiUrl = "https://www.7geese.com/api/"
   val userProfilesUrl = apiUrl + "v1/userprofiles/"
 
-  val clientId: String = ???
+  val clientId: String = play.api.Play.application.configuration.getString("geese.clientid").get
 
   def exchangeCodeForToken(code: String): Future[String] = {
     val holder: WSRequestHolder = WS.url(oauthUrl + "access_token/").withQueryString(

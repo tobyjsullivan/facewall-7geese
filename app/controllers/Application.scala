@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object Application extends Controller {
 
-  private lazy val hostUrl: String = "https://" + ??? + "/"
+  private lazy val hostUrl: String = "https://facewall-7geese.herokuapp.com/"
   private val tokenCookie = "7geeseToken"
   private val postLoginRedirect = "/facewall"
 
