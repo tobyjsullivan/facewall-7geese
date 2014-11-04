@@ -1,5 +1,6 @@
 package models.api
 
+import play.api.cache.Cache
 import play.api.libs.ws._
 import play.api.libs.json._
 import play.api.Play.current
@@ -69,25 +70,39 @@ object GeeseApi {
   def getActiveEmployees(token: String): Future[Set[Employee]] = {
     val trueToken = optOverrideToken.getOrElse(token)
 
-    val pageLimit = 20
+    val cacheKeyEmployees = "employees."+trueToken
 
-    val futureFirstSet = getEmployees(trueToken, 0, pageLimit)
+    Cache.getAs[Set[Employee]](cacheKeyEmployees) match {
+      case Some(cachedValue) => Future(cachedValue)
+      case None => {
 
-    // We have to wait for the first set to know how many more pages to fetch
-    val finalRes = futureFirstSet.flatMap {
-      case pagedResults: PagedResults[Employee] => {
-        val totalCount = pagedResults.totalCount
+        val pageLimit = 20
 
-        val remainingSets = for(
-          offset <- (0 to totalCount by pageLimit).toSet[Int]
-        ) yield getEmployees(trueToken, offset, pageLimit).map(_.results)
+        val futureFirstSet = getEmployees(trueToken, 0, pageLimit)
 
-        // Reduce from Set[Future[Set[...]]] to Future[Set[...] ++ Set[...] ++ ...]
-        Future.reduce(remainingSets) { (_: Set[Employee]) ++ (_: Set[Employee]) }
+        // We have to wait for the first set to know how many more pages to fetch
+        val finalRes = futureFirstSet.flatMap {
+          case pagedResults: PagedResults[Employee] => {
+            val totalCount = pagedResults.totalCount
+
+            val remainingSets = for(
+              offset <- (0 to totalCount by pageLimit).toSet[Int]
+            ) yield getEmployees(trueToken, offset, pageLimit).map(_.results)
+
+            // Reduce from Set[Future[Set[...]]] to Future[Set[...] ++ Set[...] ++ ...]
+            Future.reduce(remainingSets) { (_: Set[Employee]) ++ (_: Set[Employee]) }
+          }
+        }
+
+        finalRes.map{list =>
+          val res = list.filter(employee => employee.activated && employee.isActive)
+
+          Cache.set(cacheKeyEmployees, res)
+
+          res
+        }
       }
     }
-
-    finalRes.map(list => list.filter(employee => employee.activated && employee.isActive))
   }
 
   private def getEmployees(token: String, offset: Int, limit: Int): Future[PagedResults[Employee]] = {
