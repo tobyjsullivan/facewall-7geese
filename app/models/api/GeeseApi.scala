@@ -34,19 +34,17 @@ object GeeseApi {
 
 
     fResponse.map { wsResponse =>
-//      val jsResp = Json.parse(wsResponse.body)
-//
-//      val optError = (jsResp \ "error").asOpt[String]
-//
-//      val optToken = (jsResp \ "token").asOpt[String]
-//
-//      (optToken, optError) match {
-//        case (Some(token), _) => token
-//        case (None, Some(error)) => throw new Exception("Error fetching access token: "+error)
-//        case (None, None) => throw new Exception("Error finding data in response: "+wsResponse.body)
-//      }
+      val jsResp = Json.parse(wsResponse.body)
 
-      wsResponse.body
+      val optError = (jsResp \ "error").asOpt[String]
+
+      val optToken = (jsResp \ "access_token").asOpt[String]
+
+      (optToken, optError) match {
+        case (Some(token), _) => token
+        case (None, Some(error)) => throw new Exception("Error fetching access token: "+error)
+        case (None, None) => throw new Exception("Error finding data in response: "+wsResponse.body)
+      }
     }
   }
 
