@@ -5,6 +5,8 @@ import play.api.libs.json._
 import play.api.Play.current
 import play.api.Play
 
+import models.api.Employee._
+
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -64,7 +66,7 @@ object GeeseApi {
     )
   }
 
-  def getAllEmployees(token: String): Future[Set[Employee]] = {
+  def getActiveEmployees(token: String): Future[Set[Employee]] = {
     val trueToken = optOverrideToken.getOrElse(token)
 
     val pageLimit = 20
@@ -85,7 +87,7 @@ object GeeseApi {
       }
     }
 
-    finalRes
+    finalRes.map(list => list.filter(employee => employee.activated && employee.isActive))
   }
 
   private def getEmployees(token: String, offset: Int, limit: Int): Future[PagedResults[Employee]] = {
@@ -99,11 +101,12 @@ object GeeseApi {
 
     fResp.map { response =>
       response.status match {
-        case 200 => {val jsResp = Json.parse(response.body)
+        case 200 => {
+          val jsResp = Json.parse(response.body)
 
           val totalCount = (jsResp \ "meta" \ "total_count").as[Int]
 
-          val objects: Set[Employee] = (jsResp \ "objects").as[Set[Employee]]
+          val objects: Set[Employee] = (jsResp \ "objects").as[List[Employee]].toSet
 
           PagedResults(objects, offset, limit, totalCount)
         }

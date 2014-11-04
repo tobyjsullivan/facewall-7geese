@@ -67,7 +67,7 @@ object Application extends Controller {
     request.cookies.get(tokenCookie).map(_.value) match {
       case None => Future(Redirect("/login", HttpStatus.TEMPORARY_REDIRECT))
       case Some(token) =>
-        val fEmployees = GeeseApi.getAllEmployees(token)
+        val fEmployees = GeeseApi.getActiveEmployees(token)
 
         fEmployees.map { employees =>
           Ok(Json.toJson(Map("users" -> employees)))
