@@ -14,7 +14,7 @@ object Application extends Controller {
 
   private lazy val hostUrl: String = "https://facewall-7geese.herokuapp.com/"
   private val tokenCookie = "7geeseToken"
-  private val postLoginRedirect = "/facewall"
+  private val postLoginRedirect = "/assets/facewall.html"
 
   def index = Action.async { request =>
 
