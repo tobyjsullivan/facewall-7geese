@@ -20,14 +20,16 @@ object GeeseApi {
 
 
   def exchangeCodeForToken(code: String): Future[String] = {
-    val holder: WSRequestHolder = WS.url(oauthUrl + "access_token/").withQueryString(
-      "grant_type" -> "authorization_code",
-      "client_id" -> clientId,
-      "client_secret" -> clientSecret,
-      "code" -> code
-    )
+    val holder: WSRequestHolder = WS.url(oauthUrl + "access_token/")
 
-    val fResponse = holder.post("")
+
+
+    val fResponse = holder.post(Map[String, Seq[String]](
+      "grant_type" -> Seq("authorization_code"),
+      "client_id" -> Seq(clientId),
+      "client_secret" -> Seq(clientSecret),
+      "code" -> Seq(code)
+    ))
 
 
 
