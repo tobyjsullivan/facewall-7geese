@@ -16,17 +16,36 @@ object GeeseApi {
   val userProfilesUrl = apiUrl + "v1/userprofiles/"
 
   val clientId: String = play.api.Play.application.configuration.getString("geese.clientid").get
+  val clientSecret: String = play.api.Play.application.configuration.getString("geese.clientsecret").get
+
 
   def exchangeCodeForToken(code: String): Future[String] = {
     val holder: WSRequestHolder = WS.url(oauthUrl + "access_token/").withQueryString(
       "grant_type" -> "authorization_code",
       "client_id" -> clientId,
+      "client_secret" -> clientSecret,
       "code" -> code
     )
 
     val fResponse = holder.post("")
 
-    fResponse.map(wsResponse => wsResponse.body)
+
+
+    fResponse.map { wsResponse =>
+//      val jsResp = Json.parse(wsResponse.body)
+//
+//      val optError = (jsResp \ "error").asOpt[String]
+//
+//      val optToken = (jsResp \ "token").asOpt[String]
+//
+//      (optToken, optError) match {
+//        case (Some(token), _) => token
+//        case (None, Some(error)) => throw new Exception("Error fetching access token: "+error)
+//        case (None, None) => throw new Exception("Error finding data in response: "+wsResponse.body)
+//      }
+
+      wsResponse.body
+    }
   }
 
   def validateToken(token: String): Future[Boolean] = {
